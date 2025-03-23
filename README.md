@@ -1,6 +1,6 @@
 ***This repo is a part of the complete instruction on [r4ven.me](https://r4ven.me/it-razdel/instrukcii/podnimaem-svoj-dns-server-unbound-i-blokirovshhik-reklamy-pihole-v-docker/) for deploying the Pi-hole + Unbound DNS server via docker and docker-compose. It comes better with [OpenConnect VPN server](https://github.com/r4ven-me/openconnect).***
 
-[https://r4ven.me/wp-content/uploads/2024/07/openconnect\_dns.jpg](https://r4ven.me/wp-content/uploads/2024/07/openconnect_dns.jpg)
+[![](https://r4ven.me/wp-content/uploads/2024/07/openconnect_dns.jpg)](https://r4ven.me/wp-content/uploads/2024/07/openconnect_dns.jpg)
 
 When using a domain to obtain SSL certificates, uncomment the certbot service and the depends_on parameter for the openconnect service, and specify your values instead of example in the docker-compose.yml file.
 
