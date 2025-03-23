@@ -1,53 +1,103 @@
 ---
 
-# Create docker network first
-# docker network create --opt com.docker.network.bridge.name=br_vpn --driver bridge --subnet 10.10.11.0/24 vpn_network
-
 networks:
   vpn_network:
     external: true
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.10.11.0/24
 
 services:
 
   unbound:
-    image: mvance/unbound:latest
+    image: r4venme/unbound:1.17
     container_name: unbound
-    restart: unless-stopped
+    restart: on-failure
+    stop_grace_period: 30s
+    # healthcheck:
+    #   disable: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.70'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    logging: &default_logging
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    cap_add:
+      - NET_ADMIN
     hostname: "unbound"
+    environment:
+      TZ: "Europe/Moscow"
+      PUID: 14956
+      PGID: 14956
     volumes:
-      - "./unbound_data/:/opt/unbound/etc/unbound/"
+      - "./data/unbound/:/etc/unbound/"
+    expose:
+      - "53/udp"
+      - "53/tcp"
+    # ports:
+    #   - "53:53/udp"
+    #   - "53:53/tcp"
     networks:
       vpn_network:
         ipv4_address: 10.10.11.200
+        aliases:
+          - unbound-server
 
   pihole:
-    #depends_on: [unbound]
+    # depends_on: [unbound]
     container_name: pihole
-    image: pihole/pihole:latest
-    restart: unless-stopped
-    hostname: pihole
-    dns:
-      - 127.0.0.1
-      - 10.10.11.200 # Points to unbound
-    environment:
-      TZ: "Europe/Moscow"
-      WEBPASSWORD: "" # Blank password - Can be whatever you want.
-      ServerIP: 10.10.11.100 # Internal IP of pihole
-      DNS1: 10.10.11.200 # Unbound IP
-      DNS2: 10.10.11.200 # If we don't specify two, it will auto pick google.
-    volumes:
-      - "./pihole_data/:/etc/pihole/"
-      - "./dnsmasq_data/:/etc/dnsmasq.d/"
-    ports:
-      - 127.0.0.1:80:80
-    # Recommended but not required (DHCP needs NET_ADMIN)
-    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    image: pihole/pihole:2025.03.0
+    restart: on-failure
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.70'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    logging: &default_logging
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     cap_add:
       - NET_ADMIN
+      # - SYS_TIME
+      # - SYS_NICE
+    hostname: pihole
+    dns:
+      - 10.10.11.200
+      - 10.10.11.200
+    environment:
+      TZ: "Europe/Moscow"
+      PIHOLE_UID: 14956
+      PIHOLE_GID: 14956
+      FTLCONF_webserver_api_password: 'pihole_password'
+      FTLCONF_dns_listeningMode: 'all'
+      FTLCONF_dns_upstreams: 10.10.11.200;10.10.11.200
+    volumes:
+      - "./data/pihole/:/etc/pihole/"
+      # - "./data/dnsmasq/:/etc/dnsmasq.d/"
+    expose:
+      - "53/tcp"
+      - "53/udp"
+      - "80/tcp"
+    ports:
+      - "127.0.0.1:8081:80"
+      # - "53:53/tcp"
+      # - "53:53/udp"
+      # - "80:80/tcp"
+      # - "443:443/tcp"
+      # - "67:67/udp"
+      # - "123:123/udp"
     networks:
       vpn_network:
         ipv4_address: 10.10.11.100
+        aliases:
+          - pihole-dns

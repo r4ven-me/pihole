@@ -1,0 +1,5 @@
+Cmnd_Alias PIHOLE_DOCKER = \
+    /usr/bin/docker compose -f /opt/pihole/docker-compose.yml up, \
+    /usr/bin/docker compose -f /opt/pihole/docker-compose.yml down
+
+pihole ALL = (:docker) NOPASSWD: PIHOLE_DOCKER

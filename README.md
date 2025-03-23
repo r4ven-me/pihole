@@ -1,6 +1,6 @@
 ***This repo is a part of the complete instruction on [r4ven.me](https://r4ven.me/it-razdel/instrukcii/podnimaem-svoj-dns-server-unbound-i-blokirovshhik-reklamy-pihole-v-docker/) for deploying the Pi-hole + Unbound DNS server via docker and docker-compose. It comes better with [OpenConnect VPN server](https://github.com/r4ven-me/openconnect).***
 
-![Project scheme](openconnect_dns.jpg)
+[https://r4ven.me/wp-content/uploads/2024/07/openconnect\_dns.jpg](https://r4ven.me/wp-content/uploads/2024/07/openconnect_dns.jpg)
 
 When using a domain to obtain SSL certificates, uncomment the certbot service and the depends_on parameter for the openconnect service, and specify your values instead of example in the docker-compose.yml file.
 
@@ -10,9 +10,13 @@ When using a domain to obtain SSL certificates, uncomment the certbot service an
 ```sh
 sudo -s
 
-mkdir -p /opt/pihole/{pihole_data,unbound_data} && cd /opt/pihole
+addgroup --system --gid 14956 pihole
 
-touch ./unbound_data/{a,srv,forward}-records.conf
+adduser --system --gecos 'Unbound and Pihole DNS service' \
+    --disabled-password --uid 14956 --ingroup pihole \
+    --shell /sbin/nologin --home /opt/pihole/data pihole
+
+cd /opt/pihole
 ```
 
 2. Creating an external docker network
@@ -36,9 +40,13 @@ docker-compose up -d && docker-compose logs -f
 
 5. Autorun with systemd
 ```sh
-docker compose down
-
 curl -fLo /etc/systemd/system/pihole.service https://raw.githubusercontent.com/r4ven-me/pihole/main/pihole.service
+
+curl -fLo /etc/sudoers.d/90_pihole https://raw.githubusercontent.com/r4ven-me/pihole/main/pihole_sudoers
+
+visudo -c -f /etc/sudoers.d/90_pihole
+
+docker compose down
 
 systemctl daemon-reload
 
