@@ -61,11 +61,7 @@ services:
         reservations:
           cpus: '0.2'
           memory: 256M
-    logging: &default_logging
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "5"
+    logging: *default_logging
     cap_add:
       - NET_ADMIN
       # - SYS_TIME
