@@ -13,7 +13,7 @@ services:
     stop_grace_period: 30s
     # healthcheck:
     #   disable: true
-    deploy:
+    deploy: &default_deploy
       resources:
         limits:
           cpus: '0.70'
@@ -53,14 +53,7 @@ services:
     image: pihole/pihole:2025.03.0
     restart: on-failure
     stop_grace_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.70'
-          memory: 512M
-        reservations:
-          cpus: '0.2'
-          memory: 256M
+    deploy: *default_deploy
     logging: *default_logging
     cap_add:
       - NET_ADMIN
